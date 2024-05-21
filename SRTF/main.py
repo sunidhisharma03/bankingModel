@@ -5,7 +5,7 @@ from queue import Queue
 import matplotlib.pyplot as plt
 
 numTellers = 3
-maxQueueSize = 10
+maxQueueSize = 50
 
 service_completion_times = [0] * numTellers
 stop_simulation = threading.Event()
@@ -14,7 +14,7 @@ def customer_generator(queue, num_customers):
     for customer_id in range(1, num_customers + 1):
         while not stop_simulation.is_set():
             if queue.qsize() < maxQueueSize:
-                service_time = random.uniform(1, 5)  # Generate service time between 1 and 5 seconds
+                service_time = random.uniform(10, 20)  # Generate service time between 1 and 5 seconds
                 print(f"Customer{customer_id} enters the Queue with service time: {service_time:.2f} seconds")
                 arrival_time = time.time()  # Record arrival time
                 queue.put((f"Customer{customer_id}", arrival_time, service_time))
@@ -30,6 +30,10 @@ def teller_worker(queue, teller_id, waiting_times, turnaround_times, response_ti
         if not queue.empty():
             customer, arrival_time, service_time = queue.get()
             if current_customer is None or service_time < current_customer[2]:
+            # The teller compares the service time of the current customer with the service time of the newly retrieved customer.
+            # If there is no current customer being served (current_customer is None) or the service time of the new 
+            # customer is shorter than the remaining service time of the current customer,
+            # the teller decides to serve the new customer.
                 if current_customer:
                     queue.put(current_customer)  # Put back the currently serviced customer with remaining service time
                 current_customer = (customer, arrival_time, service_time)
@@ -37,7 +41,7 @@ def teller_worker(queue, teller_id, waiting_times, turnaround_times, response_ti
 
                 waiting_time = start_service_time - arrival_time  # Calculate waiting time
                 print(f"{customer} is in Teller{teller_id} with service time: {service_time:.2f} seconds")
-                print(f"Have waited for: {waiting_time:.2f} seconds")
+                # print(f"Have waited for: {waiting_time:.2f} seconds")
 
                 service_completion_times[teller_id - 1] = start_service_time + service_time
 

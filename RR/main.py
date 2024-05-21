@@ -3,6 +3,7 @@ import time
 import random
 from queue import Queue
 import matplotlib.pyplot as plt
+# Here we have imported the necessary libraries required for our program.
 
 numTellers = 3
 maxQueueSize = 10

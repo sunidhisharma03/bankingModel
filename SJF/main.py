@@ -5,7 +5,7 @@ from queue import Queue
 import matplotlib.pyplot as plt
 
 numTellers = 3
-maxQueueSize = 10
+maxQueueSize = 20
 
 service_completion_times = [0] * numTellers
 stop_simulation = threading.Event()
@@ -14,7 +14,7 @@ def customer_generator(queue, num_customers):
     for customer_id in range(1, num_customers + 1):
         while not stop_simulation.is_set():
             if queue.qsize() < maxQueueSize:
-                service_time = random.uniform(1, 5)  
+                service_time = random.uniform(10, 50)  
                 print(f"Customer{customer_id} enters the Queue with service time: {service_time:.2f} seconds")
                 arrival_time = time.time() 
                 queue.put((f"Customer{customer_id}", arrival_time, service_time))
@@ -30,14 +30,16 @@ def teller_worker(queue, teller_id, waiting_times, turnaround_times, response_ti
             customers = []
             while not queue.empty():
                 customers.append(queue.get())
-            customers.sort(key=lambda x: x[2])  # Sort customers by service time
+            customers.sort(key=lambda x: x[2]) 
+            # Sort customers by service time, The lambda function lambda x: x[2] is a short anonymous function that 
+            # takes an element x (which is a tuple representing a customer) and returns its third element, which is the service time.
             customer, arrival_time, service_time = customers.pop(0)  # Get the customer with the shortest service time
             start_service_time = time.time()  # Start service time
 
             waiting_time = start_service_time - arrival_time  # Calculate waiting time
 
             print(f"{customer} is in Teller{teller_id} with service time: {service_time:.2f} seconds")
-            print(f"Have waited for: {waiting_time:.2f} seconds")
+            # print(f"Have waited for: {waiting_time:.2f} seconds")
 
             service_completion_times[teller_id - 1] = start_service_time + service_time
 
@@ -63,7 +65,7 @@ def main():
     turnaround_times = []
     response_times = []
 
-    num_customers = 10  # Number of customers to be generated
+    num_customers = 20  
     customer_thread = threading.Thread(target=customer_generator, args=(queue, num_customers), daemon=True)
     customer_thread.start()
 
