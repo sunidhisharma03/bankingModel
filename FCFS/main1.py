@@ -8,13 +8,12 @@ numTellers = 3
 maxQueueSize = 10
 
 service_completion_times = [0] * numTellers
-#This line here create a list to keep track of the service provided by the tellers 
+teller_counts = [0] * numTellers  # Count of customers attended by each teller
 stop_simulation = threading.Event()
-#This just stops the threading stimulation
 
 def customer_generator(queue):
     customer_id = 1
-    while not stop_simulation.is_set(): #This while loop continues running until the stop_simulation event is set.
+    while not stop_simulation.is_set():
         if queue.qsize() < maxQueueSize:
             print(f"Customer{customer_id} enters the Queue")
             arrival_time = time.time()  # Record arrival time
@@ -28,29 +27,26 @@ def customer_generator(queue):
                 queue.get()
                 print("Customer left the queue due to full capacity")
                 queue.task_done()
-        time.sleep(random.uniform(0.5, 2))  # Random arrival time between 0.5 and 2 seconds (Similar to a delay)
+        time.sleep(random.uniform(0.5, 2))  # Random arrival time between 0.5 and 2 seconds
 
 def teller_worker(queue, teller_id, waiting_times, turnaround_times, response_times):
     while not stop_simulation.is_set():
         if not queue.empty():
             customer, arrival_time = queue.get()
-            start_service_time = time.time() 
-            # Start service time
-            waiting_time = start_service_time - arrival_time  
-            # Calculate waiting time
-            service_time = random.uniform(1, 5)  
-            # Service time between 1 and 5 seconds
+            start_service_time = time.time()
+            waiting_time = start_service_time - arrival_time
+            service_time = random.uniform(1, 5)
             print(f"{customer} is in Teller{teller_id}")
             service_completion_times[teller_id - 1] = start_service_time + service_time
             time.sleep(service_time)
-            #pauses the duration of service time
             end_time = time.time()  # Customer leaves
             print(f"{customer} leaves the Teller{teller_id}")
-            turnaround_time = end_time - arrival_time 
-            response_time = start_service_time - arrival_time 
+            turnaround_time = end_time - arrival_time
+            response_time = start_service_time - arrival_time
             waiting_times.append(waiting_time)
             turnaround_times.append(turnaround_time)
             response_times.append(response_time)
+            teller_counts[teller_id - 1] += 1  # Increment the count for this teller
             queue.task_done()
 
 def main():
@@ -90,6 +86,9 @@ def main():
             print(f"Average Waiting Time: {avg_waiting_time:.2f} seconds")
             print(f"Average Turnaround Time: {avg_turnaround_time:.2f} seconds")
             print(f"Average Response Time: {avg_response_time:.2f} seconds")
+            
+            for teller_id in range(numTellers):
+                print(f"Teller{teller_id + 1} attended {teller_counts[teller_id]} customers")
 
             # Plotting the graph
             metrics = ['Avg Waiting Time', 'Avg Turnaround Time', 'Avg Response Time']
